@@ -14,7 +14,12 @@ object Main {
       .master("local[*]")
       .appName("Simple Application")
       .getOrCreate()
+    loadSnapshot(spark)
+  }
 
+  def loadSnapshot(spark: SparkSession): Unit = {
+
+    val tables: Seq[String] = Seq()
 
     val mysqlConf: MysqlSourceConfig = MysqlSourceConfig(
       url = "127.0.0.1",
@@ -22,24 +27,28 @@ object Main {
       username = "",
       password = "",
       dbName = "contact",
-      tableName = "admin_tag_layers"
+      tableNames = tables,
+      excludeColumns = Map[String, Set[String]](
+      )
     )
-
-    val df = MysqlDataLoader.load(spark, mysqlConf)
-    val dfCache = df.persist
-    dfCache.count()
 
     val bqConf: BigQueryDestConfig = BigQueryDestConfig(
       projectId = "",
       datasetName = "",
-      tableName = mysqlConf.tableName,
       temporaryGcsBucket = "",
       gcpAccessToken = None,
       credentialFile = Some(""),
       partitionKey = None,
       suffix = Some("_snapshot")
     )
-    
-    BigQueryDestination.write(dfCache, bqConf)
+
+    tables.foreach{ table =>
+      val df = MysqlDataLoader.load(spark, table, mysqlConf)
+      val dfCache = df.persist
+      dfCache.count()
+      BigQueryDestination.write(dfCache, table, bqConf)
+    }
+
+
   }
 }

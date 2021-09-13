@@ -5,7 +5,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.{DataFrame, DataFrameWriter, Row, SaveMode}
 
 object BigQueryDestination {
-  def write(df: DataFrame, conf: BigQueryDestConfig): Unit = {
+  def write(df: DataFrame, tableName: String, conf: BigQueryDestConfig): Unit = {
     import conf._
 
     // Workaround of local execution problem
@@ -13,15 +13,12 @@ object BigQueryDestination {
     val hadoopConf: Configuration = df.sparkSession.sparkContext.hadoopConfiguration
     hadoopConf.set("fs.gs.project.id", projectId)
     hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile.getOrElse(""))
-    hadoopConf.forEach(f => {
-      System.out.println(s"${f.getKey}, ${f.getValue}")
-    })
 
     val base: DataFrameWriter[Row] = df.write
       .format("bigquery")
       .option("project", projectId)
       .option("parentProject", projectId)
-      .option("temporaryGcsBucket", temporaryGcsBucket)
+      .option("temporaryGcsBucket", s"$temporaryGcsBucket/test/$tableName")
       .option("httpConnectTimeout", "15000")
       .option("httpReadTimeout", "15000")
 

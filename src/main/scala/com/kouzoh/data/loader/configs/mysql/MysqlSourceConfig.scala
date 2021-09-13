@@ -5,4 +5,6 @@ case class MysqlSourceConfig(url: String,
                              username: String,
                              password: String,
                              dbName: String,
-                             tableName: String)
+                             tableNames: Seq[String],
+                             // should be like ("tableName", set["columnA", "columnB"])
+                             excludeColumns: Map[String, Set[String]])

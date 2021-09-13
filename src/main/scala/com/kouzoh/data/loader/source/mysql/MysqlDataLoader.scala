@@ -5,9 +5,9 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object MysqlDataLoader {
 
-  def load(spark: SparkSession, conf: MysqlSourceConfig): DataFrame = {
+  def load(spark: SparkSession, tableName: String, conf: MysqlSourceConfig): DataFrame = {
     import conf._
-    spark.read
+    val sourceDF: DataFrame = spark.read
       .format("jdbc")
       .option("driver", "com.mysql.cj.jdbc.Driver")
       .option("url", s"jdbc:mysql://$url:$port/$dbName")
@@ -15,5 +15,11 @@ object MysqlDataLoader {
       .option("user", username)
       .option("password", password)
       .load()
+
+    if (conf.excludeColumns.contains(tableName)) {
+      sourceDF.drop(conf.excludeColumns.getOrElse(tableName, Set.empty).toSeq: _*)
+    } else {
+      sourceDF
+    }
   }
 }
