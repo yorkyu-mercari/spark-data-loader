@@ -14,4 +14,7 @@ libraryDependencies ++= Seq(
   "mysql"                       %  "mysql-connector-java"             % "8.0.26",
   "com.google.cloud.spark"      %% "spark-bigquery-with-dependencies" % "0.22.1",
   "com.google.cloud.bigdataoss" %  "gcs-connector"                    % "hadoop3-2.2.2",
+  "com.github.scopt"            %% "scopt"                            % "3.7.1",
+
+  "org.scalatest"               %% "scalatest"                        % "3.1.1" % Test,
 )

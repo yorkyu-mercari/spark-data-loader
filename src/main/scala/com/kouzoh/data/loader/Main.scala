@@ -14,41 +14,15 @@ object Main {
       .master("local[*]")
       .appName("Simple Application")
       .getOrCreate()
-    loadSnapshot(spark)
-  }
 
-  def loadSnapshot(spark: SparkSession): Unit = {
+    val mysqlConf: MysqlSourceConfig = MysqlSourceConfig.parse(args)
+    val bqConf: BigQueryDestConfig = BigQueryDestConfig.parse(args)
 
-    val tables: Seq[String] = Seq()
-
-    val mysqlConf: MysqlSourceConfig = MysqlSourceConfig(
-      url = "127.0.0.1",
-      port = 3308,
-      username = "",
-      password = "",
-      dbName = "contact",
-      tableNames = tables,
-      excludeColumns = Map[String, Set[String]](
-      )
-    )
-
-    val bqConf: BigQueryDestConfig = BigQueryDestConfig(
-      projectId = "",
-      datasetName = "",
-      temporaryGcsBucket = "",
-      gcpAccessToken = None,
-      credentialFile = Some(""),
-      partitionKey = None,
-      suffix = Some("_snapshot")
-    )
-
-    tables.foreach{ table =>
+    mysqlConf.tableNames.foreach{ table =>
       val df = MysqlDataLoader.load(spark, table, mysqlConf)
       val dfCache = df.persist
       dfCache.count()
       BigQueryDestination.write(dfCache, table, bqConf)
     }
-
-
   }
 }

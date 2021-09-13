@@ -5,6 +5,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object MysqlDataLoader {
 
+  // only support full dump mode now
   def load(spark: SparkSession, tableName: String, conf: MysqlSourceConfig): DataFrame = {
     import conf._
     val sourceDF: DataFrame = spark.read

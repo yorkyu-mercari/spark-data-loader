@@ -1,8 +1,10 @@
 package com.kouzoh.data.loader.dest.bq
 
 import com.kouzoh.data.loader.configs.bq.BigQueryDestConfig
+import com.kouzoh.data.loader.configs.tools.BigQueryToolConfig
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.sql.{DataFrame, DataFrameWriter, Row, SaveMode}
+import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType, TimestampType}
+import org.apache.spark.sql.{DataFrame, DataFrameWriter, Row, SaveMode, SparkSession}
 
 object BigQueryDestination {
   def write(df: DataFrame, tableName: String, conf: BigQueryDestConfig): Unit = {
@@ -39,7 +41,55 @@ object BigQueryDestination {
     partitioned
       .mode(SaveMode.Overwrite)
       .save(s"""$projectId.$datasetName.$tableName${suffix.getOrElse("")}""")
+  }
 
+  def createEmptyCDCTableIfNotExist(config: BigQueryToolConfig, spark: SparkSession): Unit = {
+    import config._
 
+    val hadoopConf: Configuration = spark.sparkContext.hadoopConfiguration
+    hadoopConf.set("fs.gs.project.id", projectId)
+    hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile.getOrElse(""))
+
+    val schema: StructType = new StructType(Array(
+      StructField("key", StringType),
+      StructField("before", StringType),
+      StructField("after", StringType),
+      StructField("op", StringType),
+      StructField("ts_ms", TimestampType),
+      StructField("transaction", StringType),
+      StructField("database_name", StringType),
+      StructField("ddl", StringType),
+      StructField("source", new StructType(Array(
+        StructField("version", StringType),
+        StructField("connector", StringType),
+        StructField("name", StringType),
+        StructField("ts_ms", TimestampType),
+        StructField("snapshot", StringType),
+        StructField("db", StringType),
+        StructField("table", StringType),
+        StructField("server_id", LongType),
+        StructField("gtid", StringType),
+        StructField("file", StringType),
+        StructField("pos", LongType),
+        StructField("row", LongType),
+        StructField("thread", LongType),
+        StructField("query", StringType),
+      )))
+    ))
+
+    val emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD[Row], schema)
+
+    tableNames.par.foreach { tableName =>
+      emptyDF.write
+        .format("bigquery")
+        .option("project", projectId)
+        .option("parentProject", projectId)
+        .option("temporaryGcsBucket", s"$temporaryGcsBucket/test2/$tableName")
+        .option("httpConnectTimeout", "15000")
+        .option("httpReadTimeout", "15000")
+        .option("partitionType", "DAY")
+        .mode(SaveMode.Ignore)
+        .save(s"""$projectId.$datasetName.$tableName""")
+    }
   }
 }

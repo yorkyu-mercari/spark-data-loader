@@ -1,30 +1,28 @@
-package com.kouzoh.data.loader.configs.bq
+package com.kouzoh.data.loader.configs.tools
 
 import scopt.OptionParser
 
-case class BigQueryDestConfig (projectId: String,
-                               datasetName: String,
-                               temporaryGcsBucket: String,
-                               gcpAccessToken: Option[String],
-                               credentialFile: Option[String],
-                               partitionKey: Option[String],
-                               suffix: Option[String])
 
+case class BigQueryToolConfig(projectId: String,
+                              datasetName: String,
+                              temporaryGcsBucket: String,
+                              gcpAccessToken: Option[String],
+                              credentialFile: Option[String],
+                              tableNames: Seq[String])
 
-object BigQueryDestConfig {
+object BigQueryToolConfig {
 
-  private val defaultConfig = BigQueryDestConfig(
+  private val defaultConfig = BigQueryToolConfig(
     projectId = null,
     datasetName = null,
     temporaryGcsBucket = null,
     gcpAccessToken = None,
     credentialFile = None,
-    partitionKey = null,
-    suffix = Some("")
+    tableNames = null
   )
 
-  private val parser: OptionParser[BigQueryDestConfig] =
-    new OptionParser[BigQueryDestConfig]("BigQueryDestConfig") {
+  private val parser: OptionParser[BigQueryToolConfig] =
+    new OptionParser[BigQueryToolConfig]("BigQueryToolConfig") {
       override def errorOnUnknownArgument = false
 
       opt[String]("projectId")
@@ -50,17 +48,14 @@ object BigQueryDestConfig {
         .action((value, conf) => conf.copy(credentialFile = Some(value)))
         .text("credentialFile file path, e.g. /path/to/file.json")
 
-      opt[String]("partitionKey")
-        .action((value, conf) => conf.copy(partitionKey = Some(value)))
-        .text("partitionKey, optional")
-
-      opt[String]("suffix")
-        .action((value, conf) => conf.copy(suffix = Some(value)))
-        .text("suffix which will add to the end of table name")
+      opt[String]("tableNames")
+        .action((value, conf) => conf.copy(tableNames = value.split(",").map(_.trim).toSeq))
+        .text("target table names, e.g. t1,t2...")
+        .required()
 
     }
 
-  def parse(args: Array[String]): BigQueryDestConfig = {
+  def parse(args: Array[String]): BigQueryToolConfig = {
     parser.parse(args, defaultConfig).getOrElse(throw new RuntimeException("Unable to parse config"))
   }
 }
