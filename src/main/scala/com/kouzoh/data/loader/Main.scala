@@ -30,12 +30,12 @@ object Main {
     dfCache.count()
 
     val bqConf: BigQueryDestConfig = BigQueryDestConfig(
-      projectId = "kouzoh-analytics-jp-dev",
-      datasetName = "mercari_contact_tool_jp",
+      projectId = "",
+      datasetName = "",
       tableName = mysqlConf.tableName,
-      temporaryGcsBucket = "merpay-dataplatform-jp-dev-flink-asia/test",
+      temporaryGcsBucket = "",
       gcpAccessToken = None,
-      credentialFile = Some("/Users/york.yu/merpay-dataplatform-jp-dev-711a920f9809.json"),
+      credentialFile = Some(""),
       partitionKey = None,
       suffix = Some("_snapshot")
     )
