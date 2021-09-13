@@ -69,7 +69,7 @@ object MysqlSourceConfig {
               (k, v.map(_._2).toSet)
             }
         ))
-        .text("columns need to be excluded, e.g. t1.c1, t2,c2, t2,c3")
+        .text("columns need to be excluded, e.g. t1.c1, t2.c2, t2.c3")
         .required()
 
     }
