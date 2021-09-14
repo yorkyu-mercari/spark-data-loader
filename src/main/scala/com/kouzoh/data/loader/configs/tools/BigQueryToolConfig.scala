@@ -2,13 +2,14 @@ package com.kouzoh.data.loader.configs.tools
 
 import scopt.OptionParser
 
-
-case class BigQueryToolConfig(projectId: String,
-                              datasetName: String,
-                              temporaryGcsBucket: String,
-                              gcpAccessToken: Option[String],
-                              credentialFile: Option[String],
-                              tableNames: Seq[String])
+case class BigQueryToolConfig(
+  projectId: String,
+  datasetName: String,
+  temporaryGcsBucket: String,
+  gcpAccessToken: Option[String],
+  credentialFile: Option[String],
+  tableNames: Seq[String]
+)
 
 object BigQueryToolConfig {
 
@@ -56,6 +57,8 @@ object BigQueryToolConfig {
     }
 
   def parse(args: Array[String]): BigQueryToolConfig = {
-    parser.parse(args, defaultConfig).getOrElse(throw new RuntimeException("Unable to parse config"))
+    parser
+      .parse(args, defaultConfig)
+      .getOrElse(throw new RuntimeException("Unable to parse config"))
   }
 }

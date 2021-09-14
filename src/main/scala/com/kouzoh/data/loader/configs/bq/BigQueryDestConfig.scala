@@ -2,14 +2,15 @@ package com.kouzoh.data.loader.configs.bq
 
 import scopt.OptionParser
 
-case class BigQueryDestConfig (projectId: String,
-                               datasetName: String,
-                               temporaryGcsBucket: String,
-                               gcpAccessToken: Option[String],
-                               credentialFile: Option[String],
-                               partitionKey: Option[String],
-                               suffix: Option[String])
-
+case class BigQueryDestConfig(
+  projectId: String,
+  datasetName: String,
+  temporaryGcsBucket: String,
+  gcpAccessToken: Option[String],
+  credentialFile: Option[String],
+  partitionKey: Option[String],
+  suffix: Option[String]
+)
 
 object BigQueryDestConfig {
 
@@ -61,6 +62,8 @@ object BigQueryDestConfig {
     }
 
   def parse(args: Array[String]): BigQueryDestConfig = {
-    parser.parse(args, defaultConfig).getOrElse(throw new RuntimeException("Unable to parse config"))
+    parser
+      .parse(args, defaultConfig)
+      .getOrElse(throw new RuntimeException("Unable to parse config"))
   }
 }

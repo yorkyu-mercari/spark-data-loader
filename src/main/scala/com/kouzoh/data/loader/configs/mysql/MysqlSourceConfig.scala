@@ -2,13 +2,15 @@ package com.kouzoh.data.loader.configs.mysql
 
 import scopt.OptionParser
 
-case class MysqlSourceConfig(url: String,
-                             port: Int,
-                             username: String,
-                             password: String,
-                             dbName: String,
-                             tableNames: Seq[String],
-                             excludeColumns: Map[String, Set[String]])
+case class MysqlSourceConfig(
+  url: String,
+  port: Int,
+  username: String,
+  password: String,
+  dbName: String,
+  tableNames: Seq[String],
+  excludeColumns: Map[String, Set[String]]
+)
 
 object MysqlSourceConfig {
 
@@ -57,24 +59,29 @@ object MysqlSourceConfig {
         .required()
 
       opt[String]("excludeColumns")
-        .action((value, conf) => conf.copy(excludeColumns =
-          value
-            .split(",")
-            .map { line =>
-              val tableAndColumn = line.trim.split("\\.")
-              (tableAndColumn(0), tableAndColumn(1))
-            }
-            .groupBy(_._1)
-            .map { case (k, v) =>
-              (k, v.map(_._2).toSet)
-            }
-        ))
+        .action((value, conf) =>
+          conf.copy(excludeColumns =
+            value
+              .split(",")
+              .map { line =>
+                val tableAndColumn = line.trim.split("\\.")
+                (tableAndColumn(0), tableAndColumn(1))
+              }
+              .groupBy(_._1)
+              .map {
+                case (k, v) =>
+                  (k, v.map(_._2).toSet)
+              }
+          )
+        )
         .text("columns need to be excluded, e.g. t1.c1, t2.c2, t2.c3")
         .required()
 
     }
 
   def parse(args: Array[String]): MysqlSourceConfig = {
-    parser.parse(args, defaultConfig).getOrElse(throw new RuntimeException("Unable to parse config"))
+    parser
+      .parse(args, defaultConfig)
+      .getOrElse(throw new RuntimeException("Unable to parse config"))
   }
 }

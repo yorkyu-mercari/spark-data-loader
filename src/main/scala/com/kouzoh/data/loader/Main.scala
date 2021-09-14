@@ -9,8 +9,7 @@ import org.apache.spark.sql.SparkSession
 object Main {
   def main(args: Array[String]): Unit = {
 
-    val spark: SparkSession = SparkSession
-      .builder
+    val spark: SparkSession = SparkSession.builder
       .master("local[*]")
       .appName("Simple Application")
       .getOrCreate()
@@ -18,7 +17,7 @@ object Main {
     val mysqlConf: MysqlSourceConfig = MysqlSourceConfig.parse(args)
     val bqConf: BigQueryDestConfig = BigQueryDestConfig.parse(args)
 
-    mysqlConf.tableNames.foreach{ table =>
+    mysqlConf.tableNames.foreach { table =>
       val df = MysqlDataLoader.load(spark, table, mysqlConf)
       val dfCache = df.persist
       dfCache.count()

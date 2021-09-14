@@ -31,13 +31,15 @@ object BigQueryDestination {
         base
     }
 
-    val partitioned: DataFrameWriter[Row] = if(df.schema.fields.exists(f => f.name == "created")) {
+    val partitioned: DataFrameWriter[Row] = if (df.schema.fields.exists(f => f.name == "created")) {
       authed.option("partitionField", "created")
     } else {
       authed
     }
 
-    System.out.println(s"""will write to $projectId.$datasetName.$tableName${suffix.getOrElse("")}""")
+    System.out.println(
+      s"""will write to $projectId.$datasetName.$tableName${suffix.getOrElse("")}"""
+    )
     partitioned
       .mode(SaveMode.Overwrite)
       .save(s"""$projectId.$datasetName.$tableName${suffix.getOrElse("")}""")
@@ -50,32 +52,39 @@ object BigQueryDestination {
     hadoopConf.set("fs.gs.project.id", projectId)
     hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile.getOrElse(""))
 
-    val schema: StructType = new StructType(Array(
-      StructField("key", StringType),
-      StructField("before", StringType),
-      StructField("after", StringType),
-      StructField("op", StringType),
-      StructField("ts_ms", TimestampType),
-      StructField("transaction", StringType),
-      StructField("database_name", StringType),
-      StructField("ddl", StringType),
-      StructField("source", new StructType(Array(
-        StructField("version", StringType),
-        StructField("connector", StringType),
-        StructField("name", StringType),
+    val schema: StructType = new StructType(
+      Array(
+        StructField("key", StringType),
+        StructField("before", StringType),
+        StructField("after", StringType),
+        StructField("op", StringType),
         StructField("ts_ms", TimestampType),
-        StructField("snapshot", StringType),
-        StructField("db", StringType),
-        StructField("table", StringType),
-        StructField("server_id", LongType),
-        StructField("gtid", StringType),
-        StructField("file", StringType),
-        StructField("pos", LongType),
-        StructField("row", LongType),
-        StructField("thread", LongType),
-        StructField("query", StringType),
-      )))
-    ))
+        StructField("transaction", StringType),
+        StructField("database_name", StringType),
+        StructField("ddl", StringType),
+        StructField(
+          "source",
+          new StructType(
+            Array(
+              StructField("version", StringType),
+              StructField("connector", StringType),
+              StructField("name", StringType),
+              StructField("ts_ms", TimestampType),
+              StructField("snapshot", StringType),
+              StructField("db", StringType),
+              StructField("table", StringType),
+              StructField("server_id", LongType),
+              StructField("gtid", StringType),
+              StructField("file", StringType),
+              StructField("pos", LongType),
+              StructField("row", LongType),
+              StructField("thread", LongType),
+              StructField("query", StringType)
+            )
+          )
+        )
+      )
+    )
 
     val emptyDF = spark.createDataFrame(spark.sparkContext.emptyRDD[Row], schema)
 
