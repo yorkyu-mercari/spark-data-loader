@@ -90,7 +90,8 @@ object MysqlDataLoader {
   }
 
 
-
+  // using jdbc, spark will separate task by sql predicates, by adjust executor count and split count
+  // we are able to load all data from huge table as well
   def buildPredicatesForNumberType(min: Long, max: Long, splitCount: Long, splitColumn: String): Seq[String] = {
     val realMax: Long = max + 1
     val diff: Long = realMax - min
