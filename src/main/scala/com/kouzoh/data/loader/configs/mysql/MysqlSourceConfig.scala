@@ -3,8 +3,8 @@ package com.kouzoh.data.loader.configs.mysql
 import scopt.OptionParser
 
 case class MysqlSourceConfig(
-  url: String,
-  port: Int,
+  cloudSqlInstance: String,
+  credentialFile: String,
   username: String,
   password: String,
   dbName: String,
@@ -18,8 +18,8 @@ case class MysqlSourceConfig(
 object MysqlSourceConfig {
 
   private val defaultConfig = MysqlSourceConfig(
-    url = null,
-    port = -1,
+    cloudSqlInstance = null,
+    credentialFile = null,
     username = null,
     password = null,
     dbName = null,
@@ -34,14 +34,14 @@ object MysqlSourceConfig {
     new OptionParser[MysqlSourceConfig]("MysqlSourceConfig") {
       override def errorOnUnknownArgument = false
 
-      opt[String]("url")
-        .action((value, conf) => conf.copy(url = value))
-        .text("url of db")
+      opt[String]("cloudSqlInstance")
+        .action((value, conf) => conf.copy(cloudSqlInstance = value))
+        .text("cloudSqlInstance of db")
         .required()
 
-      opt[Int]("port")
-        .action((value, conf) => conf.copy(port = value))
-        .text("port of db")
+      opt[String]("credentialFile")
+        .action((value, conf) => conf.copy(credentialFile = value))
+        .text("credentialFile path")
         .required()
 
       opt[String]("username")

@@ -1,6 +1,8 @@
 package com.kouzoh.data.loader.source.mysql
 
+import com.google.cloud.sql.CredentialFactory
 import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
+import com.kouzoh.data.loader.utils.ServiceAccountCredentialFactory
 import org.apache.spark.sql.functions.{lit, to_timestamp}
 import org.apache.spark.sql.types.{DateType, DoubleType, FloatType, IntegerType, LongType}
 import org.apache.spark.sql.{DataFrame, DataFrameReader, Row, SparkSession}
@@ -14,7 +16,19 @@ object MysqlDataLoader {
 
     val (reader: DataFrameReader, connectionProp: Properties) = buildDataReader(spark, conf)
 
-    val connectionUrl: String = s"jdbc:mysql://$url:$port/$dbName"
+    // Force use self managed credential factory
+    System.setProperty(CredentialFactory.CREDENTIAL_FACTORY_PROPERTY, ServiceAccountCredentialFactory.getClass.getName.dropRight(1))
+    System.setProperty(ServiceAccountCredentialFactory.CREDENTIAL_FILE_PATH, credentialFile)
+
+    val connectionUrl: String =
+      s"""
+         |jdbc:mysql:///$dbName
+         |?cloudSqlInstance=$cloudSqlInstance
+         |&socketFactory=com.google.cloud.sql.mysql.SocketFactory
+         |&user=$username&password=$password
+         |""".stripMargin.replaceAll("\n", "")
+
+
 
     val df = (maybeSplitColumn, maybeSplitCount) match {
       case (Some(splitColumn), Some(splitCount)) =>
@@ -80,12 +94,9 @@ object MysqlDataLoader {
     ) ++ conf.jdbcOptions
 
     val connectionProperty: Properties = new Properties()
-    import conf._
 
     options.foreach { case(k,v) => connectionProperty.put(k, v) }
     connectionProperty.put("driver", "com.mysql.cj.jdbc.Driver")
-    connectionProperty.put("user", username)
-    connectionProperty.put("password", password)
     (spark.read.options(options), connectionProperty)
   }
 

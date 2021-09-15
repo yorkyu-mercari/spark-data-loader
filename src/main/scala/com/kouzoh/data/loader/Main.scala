@@ -17,7 +17,7 @@ object Main {
     val mysqlConf: MysqlSourceConfig = MysqlSourceConfig.parse(args)
     val bqConf: BigQueryDestConfig = BigQueryDestConfig.parse(args)
 
-    mysqlConf.tableNames.foreach { table =>
+    mysqlConf.tableNames.par.foreach { table =>
       val df = MysqlDataLoader.loadSnapshot(spark, table, mysqlConf)
       val dfCache = df.persist
       dfCache.count()

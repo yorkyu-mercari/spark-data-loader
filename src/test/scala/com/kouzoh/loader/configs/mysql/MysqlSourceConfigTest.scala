@@ -7,8 +7,8 @@ import org.scalatest.matchers.should.Matchers
 class MysqlSourceConfigTest extends AnyFlatSpec with Matchers {
   it should "parse correctly" in {
     val args = Array(
-      "--url", "url",
-      "--port", "1",
+      "--cloudSqlInstance", "aaa:ccc",
+      "--credentialFile", "aa",
       "--username", "u",
       "--password", "p",
       "--dbName", "d",
@@ -20,8 +20,8 @@ class MysqlSourceConfigTest extends AnyFlatSpec with Matchers {
     val result = MysqlSourceConfig.parse(args)
 
     val expected = MysqlSourceConfig(
-      url = "url",
-      port = 1,
+      cloudSqlInstance = "aaa:ccc",
+      credentialFile = "aa",
       username = "u",
       password = "p",
       dbName = "d",
