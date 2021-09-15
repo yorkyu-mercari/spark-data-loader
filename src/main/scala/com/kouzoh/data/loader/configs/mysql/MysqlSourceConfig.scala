@@ -9,7 +9,10 @@ case class MysqlSourceConfig(
   password: String,
   dbName: String,
   tableNames: Seq[String],
-  excludeColumns: Map[String, Set[String]]
+  excludeColumns: Map[String, Set[String]],
+  jdbcOptions: Map[String, String],
+  maybeSplitColumn: Option[String],
+  maybeSplitCount: Option[Long]
 )
 
 object MysqlSourceConfig {
@@ -21,7 +24,10 @@ object MysqlSourceConfig {
     password = null,
     dbName = null,
     tableNames = null,
-    excludeColumns = null
+    excludeColumns = null,
+    jdbcOptions = Map.empty,
+    maybeSplitColumn = None,
+    maybeSplitCount = None
   )
 
   private val parser: OptionParser[MysqlSourceConfig] =
@@ -76,6 +82,23 @@ object MysqlSourceConfig {
         )
         .text("columns need to be excluded, e.g. t1.c1, t2.c2, t2.c3")
         .required()
+
+      opt[String]("jdbcOptions")
+        .action((value, conf) => conf.copy( jdbcOptions =
+          value.split(",").map { line =>
+            val kv = line.trim.split("=")
+            (kv(0).trim, kv(1).trim)
+          }.toMap
+        ))
+        .text("jdbc options, e.g. readTimeout=1000,...")
+
+      opt[String]("splitColumn")
+        .action((value, conf) => conf.copy(maybeSplitColumn = Option(value)))
+        .text("column to split, e.g id")
+
+      opt[Long]("splitCount")
+        .action((value, conf) => conf.copy(maybeSplitCount = Option(value)))
+        .text("count number you want to split, e.g. 1000")
 
     }
 
