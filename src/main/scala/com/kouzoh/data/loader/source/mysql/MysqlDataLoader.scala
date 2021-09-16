@@ -5,7 +5,14 @@ import com.google.cloud.sql.mysql.SocketFactory
 import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
 import com.kouzoh.data.loader.utils.ServiceAccountCredentialFactory
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DateType, DoubleType, FloatType, IntegerType, LongType, TimestampType}
+import org.apache.spark.sql.types.{
+  DateType,
+  DoubleType,
+  FloatType,
+  IntegerType,
+  LongType,
+  TimestampType
+}
 import org.apache.spark.sql.{DataFrame, DataFrameReader, Row, SparkSession}
 
 import java.util.Properties
@@ -21,7 +28,10 @@ object MysqlDataLoader {
     val (reader: DataFrameReader, connectionProp: Properties) = buildDataReader(spark, conf)
 
     // Force use self managed credential factory
-    System.setProperty(CredentialFactory.CREDENTIAL_FACTORY_PROPERTY, ServiceAccountCredentialFactory.getClass.getName.dropRight(1))
+    System.setProperty(
+      CredentialFactory.CREDENTIAL_FACTORY_PROPERTY,
+      ServiceAccountCredentialFactory.getClass.getName.dropRight(1)
+    )
     System.setProperty(ServiceAccountCredentialFactory.CREDENTIAL_FILE_PATH, credentialFile)
 
     val connectionUrl: String = s"jdbc:mysql:///$dbName"
@@ -34,20 +44,27 @@ object MysqlDataLoader {
           connectionProp
         )
 
-        val predicates: Seq[String] = determineTypeAndCreatePredicates(result, splitCount, splitColumn)
+        val predicates: Seq[String] =
+          determineTypeAndCreatePredicates(result, splitCount, splitColumn)
         reader.jdbc(connectionUrl, tableName, predicates.toArray, connectionProp)
 
       case _ =>
         reader.jdbc(connectionUrl, tableName, connectionProp)
     }
 
-    df
-      .withColumn("binlog_ts_ms", to_timestamp(lit("1970-01-01T00:00:00Z"), "yyyy-MM-dd'T'HH:mm:ssXXX"))
+    df.withColumn(
+        "binlog_ts_ms",
+        to_timestamp(lit("1970-01-01T00:00:00Z"), "yyyy-MM-dd'T'HH:mm:ssXXX")
+      )
       .withColumn("binlog_pos", lit(0))
       .withColumn("binlog_row", lit(0))
   }
 
-  protected[mysql] def determineTypeAndCreatePredicates(df: DataFrame, splitCount: Long, splitColumn: String): Seq[String] = {
+  protected[mysql] def determineTypeAndCreatePredicates(
+    df: DataFrame,
+    splitCount: Long,
+    splitColumn: String
+  ): Seq[String] = {
     df.schema.fields(0).dataType match {
       case DateType | TimestampType =>
         val newResult: DataFrame =
@@ -63,7 +80,7 @@ object MysqlDataLoader {
       case LongType | IntegerType =>
         val newResult: DataFrame =
           df.withColumn(MAX_COL, col(MAX_COL).cast(LongType))
-          .withColumn(MIN_COL, col(MIN_COL).cast(LongType))
+            .withColumn(MIN_COL, col(MIN_COL).cast(LongType))
 
         val resultRow: Array[Row] = newResult.collect
         val max: Long = resultRow(0).getLong(0)
@@ -74,7 +91,7 @@ object MysqlDataLoader {
       case DoubleType | FloatType =>
         val newResult: DataFrame =
           df.withColumn(MAX_COL, col(MAX_COL).cast(DoubleType))
-          .withColumn(MIN_COL, col(MIN_COL).cast(DoubleType))
+            .withColumn(MIN_COL, col(MIN_COL).cast(DoubleType))
 
         val resultRow: Array[Row] = newResult.collect()
         val max: Double = resultRow(0).getDouble(0)
@@ -87,9 +104,11 @@ object MysqlDataLoader {
     }
   }
 
-
-  protected[mysql] def buildDataReader(spark: SparkSession, conf: MysqlSourceConfig): (DataFrameReader, Properties) = {
-    val options = Map[String, String] (
+  protected[mysql] def buildDataReader(
+    spark: SparkSession,
+    conf: MysqlSourceConfig
+  ): (DataFrameReader, Properties) = {
+    val options = Map[String, String](
       "connectTimeout" -> "120000",
       "socketTimeout" -> "120000",
       "fetchSize" -> "500"
@@ -97,7 +116,7 @@ object MysqlDataLoader {
 
     val connectionProperty: Properties = new Properties()
 
-    options.foreach { case(k,v) => connectionProperty.put(k, v) }
+    options.foreach { case (k, v) => connectionProperty.put(k, v) }
     connectionProperty.put("driver", "com.mysql.cj.jdbc.Driver")
     connectionProperty.put("socketFactory", classOf[SocketFactory].getName.split("$").head)
 
@@ -108,10 +127,14 @@ object MysqlDataLoader {
     (spark.read.options(options), connectionProperty)
   }
 
-
   // using jdbc, spark will separate task by sql predicates, by adjust executor count and split count
   // we are able to load all data from huge table as well
-  protected[mysql] def buildPredicatesForNumberType(min: Long, max: Long, splitCount: Long, splitColumn: String): Seq[String] = {
+  protected[mysql] def buildPredicatesForNumberType(
+    min: Long,
+    max: Long,
+    splitCount: Long,
+    splitColumn: String
+  ): Seq[String] = {
     val realMax: Long = max + 1
     val diff: Long = realMax - min
     val chunkSize: Long = diff / splitCount
@@ -123,8 +146,8 @@ object MysqlDataLoader {
       for (term <- 0L until splitCount) {
         val rangeStart: Long = min + term * chunkSize
         var rangeEnd: Long = rangeStart + chunkSize
-        if(term == splitCount - 1L) {
-          if(rangeEnd != realMax) rangeEnd = realMax
+        if (term == splitCount - 1L) {
+          if (rangeEnd != realMax) rangeEnd = realMax
         }
         result :+= s"$splitColumn >= $rangeStart AND $splitColumn < $rangeEnd"
       }
@@ -132,7 +155,12 @@ object MysqlDataLoader {
     }
   }
 
-  protected[mysql] def buildPredicatesForNumberType(min: Double, max: Double, splitCount: Long, splitColumn: String): Seq[String] = {
+  protected[mysql] def buildPredicatesForNumberType(
+    min: Double,
+    max: Double,
+    splitCount: Long,
+    splitColumn: String
+  ): Seq[String] = {
     val realMax: Double = max + 1
     val diff: Double = realMax - min
     val chunkSize: Double = diff / splitCount
@@ -144,8 +172,8 @@ object MysqlDataLoader {
       for (term <- 0L until splitCount) {
         val rangeStart: Double = min + term * chunkSize
         var rangeEnd: Double = rangeStart + chunkSize
-        if(term == splitCount - 1L) {
-          if(rangeEnd != realMax) rangeEnd = realMax
+        if (term == splitCount - 1L) {
+          if (rangeEnd != realMax) rangeEnd = realMax
         }
         result :+= s"$splitColumn >= ${"%.6f".format(rangeStart)} AND $splitColumn < ${"%.6f".format(rangeEnd)}"
       }
@@ -153,7 +181,12 @@ object MysqlDataLoader {
     }
   }
 
-  protected[mysql] def buildPredicatesForDateType(from: Long, to: Long, splitCount: Long, splitColumn: String): Seq[String] = {
+  protected[mysql] def buildPredicatesForDateType(
+    from: Long,
+    to: Long,
+    splitCount: Long,
+    splitColumn: String
+  ): Seq[String] = {
     val realTo: Long = to + 1000L
     val durationMillis: Long = realTo - from
     val chunkSize: Long = durationMillis / splitCount
@@ -165,8 +198,8 @@ object MysqlDataLoader {
       for (term <- 0L until splitCount) {
         val rangeStart: Long = from + term * chunkSize
         var rangeEnd: Long = rangeStart + chunkSize
-        if(term == splitCount - 1L) {
-          if(rangeEnd != realTo) rangeEnd = realTo
+        if (term == splitCount - 1L) {
+          if (rangeEnd != realTo) rangeEnd = realTo
         }
         result :+= s"$splitColumn >= FROM_UNIXTIME($rangeStart) AND $splitColumn < FROM_UNIXTIME($rangeEnd)"
       }

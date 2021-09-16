@@ -5,7 +5,6 @@ import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
 import com.kouzoh.data.loader.dest.bq.BigQueryDestination
 import com.kouzoh.data.loader.source.mysql.MysqlDataLoader
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.storage.StorageLevel
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -17,7 +16,6 @@ object Main {
 
     val mysqlConf: MysqlSourceConfig = MysqlSourceConfig.parse(args)
     val bqConf: BigQueryDestConfig = BigQueryDestConfig.parse(args)
-
 
     mysqlConf.tableNames.foreach { table =>
       val df = MysqlDataLoader.loadSnapshot(spark, table, mysqlConf)

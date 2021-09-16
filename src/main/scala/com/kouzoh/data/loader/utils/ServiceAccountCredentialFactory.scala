@@ -15,11 +15,13 @@ class ServiceAccountCredentialFactory extends CredentialFactory {
     val jsonPath: String = System.getProperty(CREDENTIAL_FILE_PATH)
     var credentials: GoogleCredentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
 
-    if(credentials.createScopedRequired()) {
-      credentials = credentials.createScoped(Seq(
-        SQLAdminScopes.SQLSERVICE_ADMIN,
-        SQLAdminScopes.CLOUD_PLATFORM
-      ).asJava)
+    if (credentials.createScopedRequired()) {
+      credentials = credentials.createScoped(
+        Seq(
+          SQLAdminScopes.SQLSERVICE_ADMIN,
+          SQLAdminScopes.CLOUD_PLATFORM
+        ).asJava
+      )
     }
     new HttpCredentialsAdapter(credentials)
   }

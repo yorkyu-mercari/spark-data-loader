@@ -84,12 +84,17 @@ object MysqlSourceConfig {
         .required()
 
       opt[String]("jdbcOptions")
-        .action((value, conf) => conf.copy( jdbcOptions =
-          value.split(",").map { line =>
-            val kv = line.trim.split("=")
-            (kv(0).trim, kv(1).trim)
-          }.toMap
-        ))
+        .action((value, conf) =>
+          conf.copy(jdbcOptions =
+            value
+              .split(",")
+              .map { line =>
+                val kv = line.trim.split("=")
+                (kv(0).trim, kv(1).trim)
+              }
+              .toMap
+          )
+        )
         .text("jdbc options, e.g. readTimeout=1000,...")
 
       opt[String]("splitColumn")
