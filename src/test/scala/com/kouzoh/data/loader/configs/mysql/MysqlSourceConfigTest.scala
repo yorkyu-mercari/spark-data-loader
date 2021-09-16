@@ -20,7 +20,7 @@ class MysqlSourceConfigTest extends AnyFlatSpec with Matchers {
 
     val expected = MysqlSourceConfig(
       cloudSqlInstance = "aaa:ccc",
-      credentialFile = "aa",
+      maybeCredentialFile = Option("aa"),
       username = "u",
       password = "p",
       dbName = "d",

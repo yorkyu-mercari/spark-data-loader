@@ -4,7 +4,7 @@ import scopt.OptionParser
 
 case class MysqlSourceConfig(
   cloudSqlInstance: String,
-  credentialFile: String,
+  maybeCredentialFile: Option[String],
   username: String,
   password: String,
   dbName: String,
@@ -19,7 +19,7 @@ object MysqlSourceConfig {
 
   private val defaultConfig = MysqlSourceConfig(
     cloudSqlInstance = null,
-    credentialFile = null,
+    maybeCredentialFile = None,
     username = null,
     password = null,
     dbName = null,
@@ -40,9 +40,8 @@ object MysqlSourceConfig {
         .required()
 
       opt[String]("credentialFile")
-        .action((value, conf) => conf.copy(credentialFile = value))
+        .action((value, conf) => conf.copy(maybeCredentialFile = Option(value)))
         .text("credentialFile path")
-        .required()
 
       opt[String]("username")
         .action((value, conf) => conf.copy(username = value))

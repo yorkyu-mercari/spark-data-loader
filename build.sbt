@@ -1,6 +1,6 @@
 name := "spark-data-loader"
 
-version := "0.2"
+version := "0.3"
 
 scalaVersion := "2.12.14"
 
@@ -10,14 +10,14 @@ val sparkBigqueryVersion = "0.22.1"
 val scalaSuffix = "_2.12"
 
 libraryDependencies ++= Seq(
-  "org.apache.spark"            %% "spark-core"                           % sparkVersion    % "provided",
-  "org.apache.spark"            %% "spark-sql"                            % sparkVersion    % "provided",
-  "org.apache.spark"            %% "spark-mllib"                          % sparkVersion    % "provided",
+  "org.apache.spark"            %% "spark-core"                           % sparkVersion          % "provided",
+  "org.apache.spark"            %% "spark-sql"                            % sparkVersion          % "provided",
+  "org.apache.spark"            %% "spark-mllib"                          % sparkVersion          % "provided",
   "com.google.cloud.spark"      %% "spark-bigquery-with-dependencies"     % sparkBigqueryVersion,
   "com.google.cloud.bigdataoss" %  "gcs-connector"                        % "hadoop3-2.2.2",
   "mysql"                       %  "mysql-connector-java"                 % "8.0.26",
-  "com.github.scopt"            %% "scopt"                                % "3.7.1",
   "com.google.cloud.sql"        %  "mysql-socket-factory-connector-j-8"   % "1.3.3",
+  "com.github.scopt"            %% "scopt"                                % "3.7.1",
 
   "org.scalatest"               %% "scalatest"                            % "3.1.1" % Test,
 )

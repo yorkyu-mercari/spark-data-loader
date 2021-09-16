@@ -27,16 +27,20 @@ object MysqlDataLoader {
 
     val (reader: DataFrameReader, connectionProp: Properties) = buildDataReader(spark, conf)
 
-    // Force use self managed credential factory
-    System.setProperty(
-      CredentialFactory.CREDENTIAL_FACTORY_PROPERTY,
-      ServiceAccountCredentialFactory.getClass.getName.dropRight(1)
-    )
-    System.setProperty(ServiceAccountCredentialFactory.CREDENTIAL_FILE_PATH, credentialFile)
+    // This is only use for local
+    maybeCredentialFile.map { credentialFile =>
+      // Force use self managed credential factory
+      System.setProperty(
+        CredentialFactory.CREDENTIAL_FACTORY_PROPERTY,
+        ServiceAccountCredentialFactory.getClass.getName.dropRight(1)
+      )
+      System.setProperty(ServiceAccountCredentialFactory.CREDENTIAL_FILE_PATH, credentialFile)
+    }
+
 
     val connectionUrl: String = s"jdbc:mysql:///$dbName"
 
-    val df = (maybeSplitColumn, maybeSplitCount) match {
+    val df: DataFrame = (maybeSplitColumn, maybeSplitCount) match {
       case (Some(splitColumn), Some(splitCount)) =>
         val result: DataFrame = reader.jdbc(
           connectionUrl,
@@ -52,7 +56,15 @@ object MysqlDataLoader {
         reader.jdbc(connectionUrl, tableName, connectionProp)
     }
 
-    df.withColumn(
+    val dfWithColumnDropped = if(excludeColumns.contains(tableName)) {
+      println(s"will exclude ${excludeColumns(tableName)}")
+      df.drop(excludeColumns(tableName).toSeq: _*)
+    } else {
+      df
+    }
+
+
+    dfWithColumnDropped.withColumn(
         "binlog_ts_ms",
         to_timestamp(lit("1970-01-01T00:00:00Z"), "yyyy-MM-dd'T'HH:mm:ssXXX")
       )
