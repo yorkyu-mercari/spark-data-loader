@@ -1,6 +1,5 @@
-package com.kouzoh.loader.configs.mysql
+package com.kouzoh.data.loader.configs.mysql
 
-import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
