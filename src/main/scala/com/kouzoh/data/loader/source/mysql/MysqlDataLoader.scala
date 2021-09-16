@@ -4,6 +4,7 @@ import com.google.cloud.sql.CredentialFactory
 import com.google.cloud.sql.mysql.SocketFactory
 import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
 import com.kouzoh.data.loader.utils.ServiceAccountCredentialFactory
+import com.mysql.cj.jdbc.Driver
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{
   DateType,
@@ -128,7 +129,7 @@ object MysqlDataLoader {
     val connectionProperty: Properties = new Properties()
 
     options.foreach { case (k, v) => connectionProperty.put(k, v) }
-    connectionProperty.put("driver", "com.mysql.cj.jdbc.Driver")
+    connectionProperty.put("driver", classOf[Driver].getName.split("$").head)
     connectionProperty.put("socketFactory", classOf[SocketFactory].getName.split("$").head)
 
     import conf._

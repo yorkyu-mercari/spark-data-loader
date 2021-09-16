@@ -6,10 +6,10 @@ case class BigQueryDestConfig(
   projectId: String,
   datasetName: String,
   temporaryGcsBucket: String,
-  gcpAccessToken: Option[String],
-  credentialFile: Option[String],
-  partitionKey: Option[String],
-  suffix: Option[String]
+  maybeGcpAccessToken: Option[String],
+  maybeCredentialFile: Option[String],
+  maybePartitionKey: Option[String],
+  maybeSuffix: Option[String]
 )
 
 object BigQueryDestConfig {
@@ -18,10 +18,10 @@ object BigQueryDestConfig {
     projectId = null,
     datasetName = null,
     temporaryGcsBucket = null,
-    gcpAccessToken = None,
-    credentialFile = None,
-    partitionKey = null,
-    suffix = Some("")
+    maybeGcpAccessToken = None,
+    maybeCredentialFile = None,
+    maybePartitionKey = null,
+    maybeSuffix = Some("")
   )
 
   private val parser: OptionParser[BigQueryDestConfig] =
@@ -44,19 +44,19 @@ object BigQueryDestConfig {
         .required()
 
       opt[String]("gcpAccessToken")
-        .action((value, conf) => conf.copy(gcpAccessToken = Some(value)))
+        .action((value, conf) => conf.copy(maybeGcpAccessToken = Some(value)))
         .text("gcpAccessToken")
 
       opt[String]("credentialFile")
-        .action((value, conf) => conf.copy(credentialFile = Some(value)))
+        .action((value, conf) => conf.copy(maybeCredentialFile = Some(value)))
         .text("credentialFile file path, e.g. /path/to/file.json")
 
       opt[String]("partitionKey")
-        .action((value, conf) => conf.copy(partitionKey = Some(value)))
+        .action((value, conf) => conf.copy(maybePartitionKey = Some(value)))
         .text("partitionKey, optional")
 
       opt[String]("suffix")
-        .action((value, conf) => conf.copy(suffix = Some(value)))
+        .action((value, conf) => conf.copy(maybeSuffix = Some(value)))
         .text("suffix which will add to the end of table name")
 
     }

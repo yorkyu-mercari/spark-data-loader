@@ -1,3 +1,5 @@
+import sbtassembly.AssemblyPlugin.autoImport.ShadeRule
+
 name := "spark-data-loader"
 
 version := "0.3"
@@ -31,7 +33,9 @@ dependencyOverrides ++= Seq(
 
 assembly / assemblyShadeRules ++= Seq(
   ShadeRule.rename("com.fasterxml.jackson.**" -> "shaded.fasterxml.jackson.@1").inAll,
-  ShadeRule.rename("com.google.**" -> "my.com.google.@1").inAll
+  ShadeRule.rename("com.google.common.**" -> "my.com.google.common.@1").inAll,
+  // this is very important, since the default jdbc library of dataproc can not load socketFactory
+  ShadeRule.rename("com.mysql.**" -> "my.com.mysql.@1").inAll,
 )
 
 assembly / assemblyMergeStrategy := {

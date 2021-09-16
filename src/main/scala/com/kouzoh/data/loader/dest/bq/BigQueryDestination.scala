@@ -10,11 +10,13 @@ object BigQueryDestination {
   def write(df: DataFrame, tableName: String, conf: BigQueryDestConfig): Unit = {
     import conf._
 
-    // Workaround of local execution problem
-    // https://github.com/broadinstitute/gatk/issues/4369#issuecomment-385198863
-    val hadoopConf: Configuration = df.sparkSession.sparkContext.hadoopConfiguration
-    hadoopConf.set("fs.gs.project.id", projectId)
-    hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile.getOrElse(""))
+    maybeCredentialFile.foreach { credentialFile =>
+      // Workaround of local execution problem
+      // https://github.com/broadinstitute/gatk/issues/4369#issuecomment-385198863
+      val hadoopConf: Configuration = df.sparkSession.sparkContext.hadoopConfiguration
+      hadoopConf.set("fs.gs.project.id", projectId)
+      hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile)
+    }
 
     val base: DataFrameWriter[Row] = df.write
       .format("bigquery")
@@ -24,10 +26,12 @@ object BigQueryDestination {
       .option("httpConnectTimeout", "15000")
       .option("httpReadTimeout", "15000")
 
-    val authed: DataFrameWriter[Row] = (credentialFile, gcpAccessToken) match {
+    val authed: DataFrameWriter[Row] = (maybeCredentialFile, maybeGcpAccessToken) match {
       case (Some(file), _) =>
         base.option("credentialsFile", file)
       case (None, Some(token)) =>
+        base
+      case _ =>
         base
     }
 
@@ -38,11 +42,11 @@ object BigQueryDestination {
     }
 
     System.out.println(
-      s"""will write to $projectId.$datasetName.$tableName${suffix.getOrElse("")}"""
+      s"""will write to $projectId.$datasetName.$tableName${maybeSuffix.getOrElse("")}"""
     )
     partitioned
       .mode(SaveMode.Overwrite)
-      .save(s"""$projectId.$datasetName.$tableName${suffix.getOrElse("")}""")
+      .save(s"""$projectId.$datasetName.$tableName${maybeSuffix.getOrElse("")}""")
   }
 
   def createEmptyCDCTableIfNotExist(config: BigQueryToolConfig, spark: SparkSession): Unit = {
