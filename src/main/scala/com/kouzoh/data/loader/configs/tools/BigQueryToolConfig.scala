@@ -6,8 +6,8 @@ case class BigQueryToolConfig(
   projectId: String,
   datasetName: String,
   temporaryGcsBucket: String,
-  gcpAccessToken: Option[String],
-  credentialFile: Option[String],
+  maybeGcpAccessToken: Option[String],
+  maybeCredentialFile: Option[String],
   tableNames: Seq[String]
 )
 
@@ -17,8 +17,8 @@ object BigQueryToolConfig {
     projectId = null,
     datasetName = null,
     temporaryGcsBucket = null,
-    gcpAccessToken = None,
-    credentialFile = None,
+    maybeGcpAccessToken = None,
+    maybeCredentialFile = None,
     tableNames = null
   )
 
@@ -42,11 +42,11 @@ object BigQueryToolConfig {
         .required()
 
       opt[String]("gcpAccessToken")
-        .action((value, conf) => conf.copy(gcpAccessToken = Some(value)))
+        .action((value, conf) => conf.copy(maybeGcpAccessToken = Some(value)))
         .text("gcpAccessToken")
 
       opt[String]("credentialFile")
-        .action((value, conf) => conf.copy(credentialFile = Some(value)))
+        .action((value, conf) => conf.copy(maybeCredentialFile = Some(value)))
         .text("credentialFile file path, e.g. /path/to/file.json")
 
       opt[String]("tableNames")

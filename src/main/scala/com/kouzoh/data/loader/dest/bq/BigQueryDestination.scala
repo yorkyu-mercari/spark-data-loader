@@ -52,9 +52,13 @@ object BigQueryDestination {
   def createEmptyCDCTableIfNotExist(config: BigQueryToolConfig, spark: SparkSession): Unit = {
     import config._
 
-    val hadoopConf: Configuration = spark.sparkContext.hadoopConfiguration
-    hadoopConf.set("fs.gs.project.id", projectId)
-    hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile.getOrElse(""))
+    maybeCredentialFile.foreach { credentialFile =>
+      // Workaround of local execution problem
+      // https://github.com/broadinstitute/gatk/issues/4369#issuecomment-385198863
+      val hadoopConf: Configuration = spark.sparkContext.hadoopConfiguration
+      hadoopConf.set("fs.gs.project.id", projectId)
+      hadoopConf.set("google.cloud.auth.service.account.json.keyfile", credentialFile)
+    }
 
     val schema: StructType = new StructType(
       Array(
