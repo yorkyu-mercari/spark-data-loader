@@ -1,17 +1,19 @@
 name := "spark-data-loader"
 
-version := "0.1"
+version := "0.2"
 
 scalaVersion := "2.12.14"
 
 
 val sparkVersion = "3.1.2"
+val sparkBigqueryVersion = "0.22.1"
+val scalaSuffix = "_2.12"
 
 libraryDependencies ++= Seq(
   "org.apache.spark"            %% "spark-core"                           % sparkVersion    % "provided",
   "org.apache.spark"            %% "spark-sql"                            % sparkVersion    % "provided",
   "org.apache.spark"            %% "spark-mllib"                          % sparkVersion    % "provided",
-  "com.google.cloud.spark"      %% "spark-bigquery-with-dependencies"     % "0.22.1",
+  "com.google.cloud.spark"      %% "spark-bigquery-with-dependencies"     % sparkBigqueryVersion,
   "com.google.cloud.bigdataoss" %  "gcs-connector"                        % "hadoop3-2.2.2",
   "mysql"                       %  "mysql-connector-java"                 % "8.0.26",
   "com.github.scopt"            %% "scopt"                                % "3.7.1",
@@ -27,13 +29,9 @@ dependencyOverrides ++= Seq(
   "com.google.guava"            % "guava"                                 % "30.0-jre"
 )
 
-//excludeDependencies ++= Seq(
-//  "com.google.guava" % "guava"
-//)
-
 assembly / assemblyShadeRules ++= Seq(
   ShadeRule.rename("com.fasterxml.jackson.**" -> "shaded.fasterxml.jackson.@1").inAll,
-  ShadeRule.rename("com.google.**" -> "my.com.google.@1").inAll.inProject,
+  ShadeRule.rename("com.google.**" -> "my.com.google.@1").inAll
 )
 
 assembly / assemblyMergeStrategy := {

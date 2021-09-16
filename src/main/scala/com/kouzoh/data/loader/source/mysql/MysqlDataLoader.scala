@@ -1,6 +1,7 @@
 package com.kouzoh.data.loader.source.mysql
 
 import com.google.cloud.sql.CredentialFactory
+import com.google.cloud.sql.mysql.SocketFactory
 import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
 import com.kouzoh.data.loader.utils.ServiceAccountCredentialFactory
 import org.apache.spark.sql.functions.{lit, to_timestamp}
@@ -20,15 +21,7 @@ object MysqlDataLoader {
     System.setProperty(CredentialFactory.CREDENTIAL_FACTORY_PROPERTY, ServiceAccountCredentialFactory.getClass.getName.dropRight(1))
     System.setProperty(ServiceAccountCredentialFactory.CREDENTIAL_FILE_PATH, credentialFile)
 
-    val connectionUrl: String =
-      s"""
-         |jdbc:mysql:///$dbName
-         |?cloudSqlInstance=$cloudSqlInstance
-         |&socketFactory=com.google.cloud.sql.mysql.SocketFactory
-         |&user=$username&password=$password
-         |""".stripMargin.replaceAll("\n", "")
-
-
+    val connectionUrl: String = s"jdbc:mysql:///$dbName"
 
     val df = (maybeSplitColumn, maybeSplitCount) match {
       case (Some(splitColumn), Some(splitCount)) =>
@@ -97,6 +90,12 @@ object MysqlDataLoader {
 
     options.foreach { case(k,v) => connectionProperty.put(k, v) }
     connectionProperty.put("driver", "com.mysql.cj.jdbc.Driver")
+    connectionProperty.put("socketFactory", classOf[SocketFactory].getName.split("$").head)
+
+    import conf._
+    connectionProperty.put("cloudSqlInstance", cloudSqlInstance)
+    connectionProperty.put("user", username)
+    connectionProperty.put("password", password)
     (spark.read.options(options), connectionProperty)
   }
 
@@ -108,7 +107,7 @@ object MysqlDataLoader {
     val diff: Long = realMax - min
     val chunkSize: Long = diff / splitCount
 
-    if (chunkSize <= 500) {
+    if (chunkSize <= 1000) {
       Seq(s"$splitColumn >= $min AND $splitColumn < $max")
     } else {
       var result: Seq[String] = Seq()
@@ -129,7 +128,7 @@ object MysqlDataLoader {
     val diff: Double = realMax - min
     val chunkSize: Double = diff / splitCount
 
-    if (chunkSize <= 500) {
+    if (chunkSize <= 1000) {
       Seq(s"$splitColumn >= $min AND $splitColumn < $max")
     } else {
       var result: Seq[String] = Seq()
@@ -150,7 +149,7 @@ object MysqlDataLoader {
     val durationMillis: Long = realTo - from
     val chunkSize: Long = durationMillis / splitCount
 
-    if (chunkSize <= 500) {
+    if (chunkSize <= 1000) {
       Seq(s"$splitColumn >= FROM_UNIXTIME($from) AND $splitColumn < FROM_UNIXTIME($realTo)")
     } else {
       var result: Seq[String] = Seq()
