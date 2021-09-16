@@ -37,7 +37,6 @@ object MysqlDataLoader {
       System.setProperty(ServiceAccountCredentialFactory.CREDENTIAL_FILE_PATH, credentialFile)
     }
 
-
     val connectionUrl: String = s"jdbc:mysql:///$dbName"
 
     val df: DataFrame = (maybeSplitColumn, maybeSplitCount) match {
@@ -56,15 +55,15 @@ object MysqlDataLoader {
         reader.jdbc(connectionUrl, tableName, connectionProp)
     }
 
-    val dfWithColumnDropped = if(excludeColumns.contains(tableName)) {
+    val dfWithColumnDropped = if (excludeColumns.contains(tableName)) {
       println(s"will exclude ${excludeColumns(tableName)}")
       df.drop(excludeColumns(tableName).toSeq: _*)
     } else {
       df
     }
 
-
-    dfWithColumnDropped.withColumn(
+    dfWithColumnDropped
+      .withColumn(
         "binlog_ts_ms",
         to_timestamp(lit("1970-01-01T00:00:00Z"), "yyyy-MM-dd'T'HH:mm:ssXXX")
       )
