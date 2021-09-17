@@ -1,6 +1,6 @@
 ## Note
 Since this project tested on local spark, and the guava version required by project is 20.0-jre, 
-but in spark it was 14.x, so I shaded all `com.google` to `my.com.google`.
+but in spark it was 14.x, so I shaded all `com.google.common` to `my.com.google.common`.
 
 It may not happen on gcp dataproc
 
