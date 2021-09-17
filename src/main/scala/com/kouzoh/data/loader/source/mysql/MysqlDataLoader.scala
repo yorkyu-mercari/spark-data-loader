@@ -3,7 +3,7 @@ package com.kouzoh.data.loader.source.mysql
 import com.google.cloud.sql.CredentialFactory
 import com.google.cloud.sql.mysql.SocketFactory
 import com.kouzoh.data.loader.configs.mysql.MysqlSourceConfig
-import com.kouzoh.data.loader.utils.ServiceAccountCredentialFactory
+import com.kouzoh.data.loader.utils.{CommonLogger, ServiceAccountCredentialFactory}
 import com.mysql.cj.jdbc.Driver
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{
@@ -18,7 +18,7 @@ import org.apache.spark.sql.{DataFrame, DataFrameReader, Row, SparkSession}
 
 import java.util.Properties
 
-object MysqlDataLoader {
+object MysqlDataLoader extends CommonLogger {
 
   val MAX_COL: String = "max_value"
   val MIN_COL: String = "min_value"
@@ -57,7 +57,7 @@ object MysqlDataLoader {
     }
 
     val dfWithColumnDropped = if (excludeColumns.contains(tableName)) {
-      println(s"will exclude ${excludeColumns(tableName)}")
+      log.info(s"will exclude ${excludeColumns(tableName)}")
       df.drop(excludeColumns(tableName).toSeq: _*)
     } else {
       df

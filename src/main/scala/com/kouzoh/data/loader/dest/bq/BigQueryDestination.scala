@@ -2,11 +2,12 @@ package com.kouzoh.data.loader.dest.bq
 
 import com.kouzoh.data.loader.configs.bq.BigQueryDestConfig
 import com.kouzoh.data.loader.configs.tools.BigQueryToolConfig
+import com.kouzoh.data.loader.utils.CommonLogger
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.{LongType, StringType, StructField, StructType, TimestampType}
 import org.apache.spark.sql.{DataFrame, DataFrameWriter, Row, SaveMode, SparkSession}
 
-object BigQueryDestination {
+object BigQueryDestination extends CommonLogger {
   def write(df: DataFrame, tableName: String, conf: BigQueryDestConfig): Unit = {
     import conf._
 
@@ -41,7 +42,7 @@ object BigQueryDestination {
       authed
     }
 
-    System.out.println(
+    log.info(
       s"""will write to $projectId.$datasetName.$tableName${maybeSuffix.getOrElse("")}"""
     )
     partitioned

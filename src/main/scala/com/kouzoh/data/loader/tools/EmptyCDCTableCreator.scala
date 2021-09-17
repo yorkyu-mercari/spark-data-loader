@@ -8,7 +8,6 @@ object EmptyCDCTableCreator {
   def main(args: Array[String]): Unit = {
 
     val spark: SparkSession = SparkSession.builder
-      .master("local[*]")
       .appName("Simple Application")
       .getOrCreate()
 
